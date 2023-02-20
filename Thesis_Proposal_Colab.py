@@ -451,17 +451,14 @@ for iteration in range(TOTAL_ITERATIONS):
     iteration+=1
 
 
+# %%
+for s in states:
+    print('$$$$$$$$$$$$$$$$$$$$$$$', s)
+    for values in values_per_policy:
+        print(values[s])
+
 # %% [markdown] id="2deOVsw46wE0"
 # Now print your policy and make sure it leads to the upper-right corner which is the termnial state returning the most rewards.
-
-# %% colab={"base_uri": "https://localhost:8080/"} id="zFYrJePuaRr2" outputId="27ce7fdb-a010-48da-a60a-8c835616f8bb"
-{k: v[:5] for k, v in values_per_policy[2].items()}
-
-# %% colab={"base_uri": "https://localhost:8080/"} id="driqrVh2hI8J" outputId="8e2b06ca-2c22-4700-9dd6-49462cb25d79"
-{k: v[:5] for k, v in actions_per_policy[0].items()}[0, 1]
-
-# %% colab={"base_uri": "https://localhost:8080/"} id="B_KTTkG7hL8r" outputId="905b78a8-12df-4923-9783-e97dc30ace11"
-{k: v[:5] for k, v in rewards_per_policy[0].items()}[0, 1]
 
 # %% colab={"base_uri": "https://localhost:8080/"} id="YV4LWkK36x3a" outputId="19cfe877-2ea8-4e66-e7dc-13c4f0f91ff5"
 print("final values:")
@@ -498,7 +495,7 @@ labels = []
 attention_mask = []
 null = 0
 SHUFFLES_PER_PROMPT = 80
-heldout_states = [(2, 0), (0, 2)]
+heldout_states = [(5, 2), (4, 4)]
 
 def make_state_ids(state):
   return list(1 + np.array(state))
@@ -713,6 +710,11 @@ state = train_state.TrainState.create(apply_fn=model.__call__, params=model.para
 #
 # Also note that the `labels` are shifted one to the left and the last token of the `logits` is cut. This way, the model learns to predict the **next** token as defined in causal language modeling.
 
+# %%
+def metrics_mask(labels: jnp.ndarray):
+    return jnp.where(labels == 0, jnp.nan, 1)
+
+
 # %% id="GjKzb0zJd-aH"
 def prepare_for_model(batch):
   return {k: v for k, v in batch.items() if k in ['attention_mask', 'input_ids']}
@@ -844,7 +846,10 @@ for epoch in tqdm(range(1, num_epochs + 1), desc=f"Epoch ...", position=0, leave
 
             progress_bar_eval.update(1)
  
+        probs = eval_metrics[0]['probs']
         eval_metrics = get_metrics(eval_metrics)
+        labels = model_inputs['labels']
+        inputs = model_inputs['input_ids']
         eval_metrics = jax.tree_map(jnp.mean, eval_metrics)
 
         loss = eval_metric['loss'].mean()
@@ -876,4 +881,4 @@ del eval_step
 del train_step
 del state
 
-# %% id="JzfjKPvUeXU4"
+# %%
