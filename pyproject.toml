@@ -28,6 +28,8 @@ widgetsnbextension = "^4.0.5"  # jupyter-http-over-ws
 jupyterlab-widgets = "^3.0.5"
 jupyter-core = "^5.2.0"
 jupyter-http-over-ws = "^0.0.8"
+pyarrow = "8.0"
+datasets = "^2.9.0"
 
 [tool.poetry.dev-dependencies]
 black = "^22.6.0"
