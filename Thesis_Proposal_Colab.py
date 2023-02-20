@@ -711,8 +711,8 @@ state = train_state.TrainState.create(apply_fn=model.__call__, params=model.para
 # Also note that the `labels` are shifted one to the left and the last token of the `logits` is cut. This way, the model learns to predict the **next** token as defined in causal language modeling.
 
 # %%
-def metrics_mask(labels: jnp.ndarray):
-    return jnp.where(labels == 0, jnp.nan, 1)
+def metrics_mask(metric: jnp.ndarray, labels: jnp.ndarray):
+    return jnp.nanmean(metric * jnp.where(labels == 0, jnp.nan, 1))
 
 
 # %% id="GjKzb0zJd-aH"
@@ -729,10 +729,12 @@ def train_step(state, batch, dropout_rng):
         logits = logits[..., :-1, :]
         onehots = onehot(labels[..., 1:], logits.shape[-1])
 
-        loss = optax.softmax_cross_entropy(logits, onehots).mean()
+        loss = optax.softmax_cross_entropy(logits, onehots)
         probs = jax.nn.softmax(logits, axis=-1)
-        accuracy = (probs * onehots).sum(-1).mean()
-        return loss, dict(accuracy=accuracy)
+        accuracy = (probs * onehots).sum(-1)
+        labels = labels[..., 1:]
+        accuracy = metrics_mask(accuracy, labels)
+        return loss.mean(), dict(accuracy=accuracy, loss=metrics_mask(loss, labels))
 
     grad_fn = jax.value_and_grad(loss_fn, has_aux=True)
     (loss, aux), grad = grad_fn(state.params)
@@ -767,12 +769,13 @@ def eval_step(params, batch):
 
     loss = optax.softmax_cross_entropy(logits, onehots).mean()
     probs = jax.nn.softmax(logits, axis=-1)
-    accuracy = (probs * onehots).sum(-1).mean()
 
-    loss = optax.softmax_cross_entropy(logits, onehots).mean()
+    labels = labels[..., 1:]
+    accuracy = metrics_mask((probs * onehots).sum(-1), labels)
+    loss = metrics_mask(optax.softmax_cross_entropy(logits, onehots), labels)
 
     # summarize metrics
-    metrics = {"loss": loss, "perplexity": jnp.exp(loss), "accuracy": accuracy}
+    metrics = {"loss": loss, "accuracy": accuracy}
     metrics = dict(**jax.lax.pmean(metrics, axis_name="batch"), probs=probs)
     return metrics
 
@@ -858,7 +861,7 @@ for epoch in tqdm(range(1, num_epochs + 1), desc=f"Epoch ...", position=0, leave
         accuracies['validation'].append(accuracy)
 
         progress_bar_eval.write(
-            f"Eval... ({epoch}/{num_epochs} | Accuracy: {round(accuracy, 3)} | Loss: {round(loss, 3)} | Perplexity: {eval_metrics['perplexity']})"
+            f"Eval... ({epoch}/{num_epochs} | Accuracy: {round(accuracy, 3)} | Loss: {round(loss, 3)})"
         )
 
     for label, loss in losses.items():
