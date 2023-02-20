@@ -4,4 +4,3 @@ result
 .ipynb_checkpoints/
 __pycache__/
 distilgpt2-pretrained-is/
-gridWorldGame.py
