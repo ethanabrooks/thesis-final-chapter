@@ -169,7 +169,7 @@ from gridWorldGame import standard_grid, negative_grid, print_values, print_poli
 # %%
 from collections import defaultdict
 
-def string_to_grid(grid_string: str, **kwargs):
+def string_to_grid(grid_string: str, terminal: list, **kwargs):
     grid_string = grid_string.replace('.', '0')
     actions = defaultdict(list)
     rewards = {}
@@ -183,6 +183,8 @@ def string_to_grid(grid_string: str, **kwargs):
                 rewards[(i, j)] = float(r)
             except ValueError:
                 import ipdb; ipdb.set_trace()
+            if (i, j) in terminal:
+                continue
             if j > 0 and row[j - 1] != ' ':
                 actions[(i, j)].append('L')
             if j < len(row) - 1 and row[j + 1] != ' ':
@@ -191,6 +193,8 @@ def string_to_grid(grid_string: str, **kwargs):
     for j, column in enumerate(columns):
         for i, r in enumerate(column):
             if r == ' ':
+                continue
+            if (i, j) in terminal:
                 continue
             if i > 0 and column[i - 1] != ' ':
                 actions[(i, j)].append('U')
@@ -211,7 +215,7 @@ def string_to_grid(grid_string: str, **kwargs):
         print(k, v)
     return g
 
-def four_rooms(noise_prob=0.1):
+def four_rooms(noise_prob=0.0):
   # define a grid that describes the reward for arriving at each state
   # and possible actions at each state
   # the grid looks like this
@@ -227,7 +231,7 @@ def four_rooms(noise_prob=0.1):
 . . . . . . .
 . . .   . . ."""
 
-  return string_to_grid(grid_string, start=(6, 1), noise_prob=noise_prob)
+  return string_to_grid(grid_string, start=(5, 1), terminal=[(1, 5)], noise_prob=noise_prob)
 
 four_rooms()
 
@@ -242,14 +246,14 @@ four_rooms()
 SMALL_ENOUGH = 1e-3 # threshold to declare convergence
 GAMMA = 0.9         # discount factor
 ALL_POSSIBLE_ACTIONS = ('U', 'D', 'L', 'R') # Up, Down, Left, Right
-NOISE_PROB = 0.1    # Probability of the agent not reaching it's intended goal after an action
+NOISE_PROB = 0.00   # Probability of the agent not reaching it's intended goal after an action
 
 # %% [markdown] id="KlkpxSv_54PC"
 # Now we will set up a the Gridworld. <br>
 #
 
 # %% colab={"base_uri": "https://localhost:8080/"} id="lX4P99zn55L_" outputId="d9a5a5a7-96b2-411d-b565-448741b92672"
-grid = standard_grid(noise_prob=NOISE_PROB)
+grid = four_rooms(noise_prob=NOISE_PROB)
 
 # %% [markdown] id="py_40YFP59aJ"
 # There are three absorbing states: (0,3),(1,3), and (1,1)
@@ -365,9 +369,12 @@ actions_per_policy = []
 rewards_per_policy = []
 sprimes_per_policy = []
 
-iteration=0
+TOTAL_ITERATIONS = 10
+VALUE_ITERATIONS = 3
+V = {k: 0 for k in states}
+
 # repeat until the policy does not change
-while True:
+for iteration in range(TOTAL_ITERATIONS):
     print("values (iteration %d)" % iteration)
     print_values(V, grid)
     print("policy (iteration %d)" % iteration)
@@ -384,8 +391,7 @@ while True:
     rewards_per_state = defaultdict(list)
     sprimes_per_state = defaultdict(list)
     Vs = []
-    V = {k: 0 for k in V}
-    while True:
+    for _ in range(VALUE_ITERATIONS):
         biggest_change = 0
         for s in states:
             old_v = V[s]
@@ -395,16 +401,23 @@ while True:
                 a = policy[s]
                 grid.set_state(s)
                 r = grid.move(a) # reward
-                sprime = grid.current_state() # s' 
-                V[s] = r + GAMMA * V[sprime]
+                if grid.is_terminal(s):
+                    breakpoint()
+                    print("HELLO")
+                    import ipdb; ipdb.set_trace()
+                    V[s] = r
+                else:
+                    sprime = grid.current_state() # s' 
+                    V[s] = r + GAMMA * V[sprime]
             biggest_change = max(biggest_change, np.abs(old_v - V[s]))
             values_per_state[s].append(V[s])
             actions_per_state[s].append(a)
             rewards_per_state[s].append(r)
             sprimes_per_state[s].append(sprime)
             Vs.append(V)
-        if biggest_change < SMALL_ENOUGH:
-            break
+        print(biggest_change)
+        # if biggest_change < 0.5:
+        #     break
     values_per_policy.append(values_per_state)
     Vs_per_policy.append(Vs)
     actions_per_policy.append(actions_per_state)
