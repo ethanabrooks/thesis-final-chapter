@@ -39,8 +39,6 @@
 # %% [markdown] id="OzbEi2R3rqzJ"
 # ## Initialization
 
-# %%
-
 # %% [markdown] id="PwDAzFXQMd46"
 # If you're opening this Notebook on colab, you will probably need to install 🤗 Transformers, 🤗 Datasets, 🤗 Tokenizers as well as [Flax](https://github.com/google/flax.git) and [Optax](https://github.com/deepmind/optax). Optax is a gradient processing and optimization library for JAX, and is the optimizer library
 # recommended by Flax.
@@ -69,6 +67,7 @@
 
 # %% colab={"base_uri": "https://localhost:8080/"} id="3R5MP7PAbV7V" outputId="51b58749-8438-468f-b038-b19394ecd3d2"
 import jax
+
 jax.local_devices()
 
 # %% [markdown] id="vehXZCipMa1V"
@@ -87,7 +86,7 @@ language = "is"
 
 # %% [markdown] id="jVtv6T0oSjNq"
 # Next, we select the model architecture to be trained from scratch.
-# Here we choose [**`distilgpt2`**](https://huggingface.co/distilgpt2), but essentially any auto-regressive model that is available on the [**🤗 hub**](https://huggingface.co/models?filter=masked-lm,jax) in JAX/Flax can be used. 
+# Here we choose [**`distilgpt2`**](https://huggingface.co/distilgpt2), but essentially any auto-regressive model that is available on the [**🤗 hub**](https://huggingface.co/models?filter=masked-lm,jax) in JAX/Flax can be used.
 
 # %% id="Sj1mJNJa6PPS"
 model_config = "distilgpt2"
@@ -161,7 +160,7 @@ from tqdm.notebook import tqdm
 # ### 1.1 Setup
 
 # %% colab={"base_uri": "https://localhost:8080/"} id="BElYb9oS5oly" outputId="f4f4d973-4906-4ac2-9243-a3eb6776c3d7"
-#imports
+# imports
 
 import numpy as np
 from gridWorldGame import standard_grid, negative_grid, print_values, print_policy, Grid
@@ -169,37 +168,40 @@ from gridWorldGame import standard_grid, negative_grid, print_values, print_poli
 # %%
 from collections import defaultdict
 
+
 def string_to_grid(grid_string: str, terminal: list, **kwargs):
-    grid_string = grid_string.replace('.', '0')
+    grid_string = grid_string.replace(".", "0")
     actions = defaultdict(list)
     rewards = {}
-    rows = grid_string.split('\n')
+    rows = grid_string.split("\n")
     rows = [row[::2] for row in rows]
     for i, row in enumerate(rows):
         for j, r in enumerate(row):
-            if r == ' ':
+            if r == " ":
                 continue
             try:
                 rewards[(i, j)] = float(r)
             except ValueError:
-                import ipdb; ipdb.set_trace()
+                import ipdb
+
+                ipdb.set_trace()
             if (i, j) in terminal:
                 continue
-            if j > 0 and row[j - 1] != ' ':
-                actions[(i, j)].append('L')
-            if j < len(row) - 1 and row[j + 1] != ' ':
-                actions[(i, j)].append('R')
+            if j > 0 and row[j - 1] != " ":
+                actions[(i, j)].append("L")
+            if j < len(row) - 1 and row[j + 1] != " ":
+                actions[(i, j)].append("R")
     columns = list(zip(*rows))
     for j, column in enumerate(columns):
         for i, r in enumerate(column):
-            if r == ' ':
+            if r == " ":
                 continue
             if (i, j) in terminal:
                 continue
-            if i > 0 and column[i - 1] != ' ':
-                actions[(i, j)].append('U')
-            if i < len(column) - 1 and column[i + 1] != ' ':
-                actions[(i, j)].append('D')
+            if i > 0 and column[i - 1] != " ":
+                actions[(i, j)].append("U")
+            if i < len(column) - 1 and column[i + 1] != " ":
+                actions[(i, j)].append("D")
     width = len(rows[0])
     height = len(rows)
     g = Grid(width, height, **kwargs)
@@ -207,22 +209,23 @@ def string_to_grid(grid_string: str, terminal: list, **kwargs):
     for i in range(height):
         for j in range(width):
             try:
-                print(int(rewards[(i, j)]), end=' ')
+                print(int(rewards[(i, j)]), end=" ")
             except KeyError:
-                print(' ', end=' ')
+                print(" ", end=" ")
         print()
     for k, v in actions.items():
         print(k, v)
     return g
 
+
 def four_rooms(noise_prob=0.0):
-  # define a grid that describes the reward for arriving at each state
-  # and possible actions at each state
-  # the grid looks like this
-  # x means you can't go there
-  # s means start position
-  # number means reward at that state
-  grid_string = """\
+    # define a grid that describes the reward for arriving at each state
+    # and possible actions at each state
+    # the grid looks like this
+    # x means you can't go there
+    # s means start position
+    # number means reward at that state
+    grid_string = """\
 . . .   . . .
 . . . . . 1 .
 . . .   . . .
@@ -231,7 +234,10 @@ def four_rooms(noise_prob=0.0):
 . . . . . . .
 . . .   . . ."""
 
-  return string_to_grid(grid_string, start=(5, 1), terminal=[(1, 5)], noise_prob=noise_prob)
+    return string_to_grid(
+        grid_string, start=(5, 1), terminal=[(1, 5)], noise_prob=noise_prob
+    )
+
 
 four_rooms()
 
@@ -240,13 +246,15 @@ four_rooms()
 # `SMALL_ENOUGH` is a threshold we will utilize to determine the convergence of value iteration<br>
 # `GAMMA` is the discount factor denoted $\gamma$ in the slides (see slide 36) <br>
 # `ALL_POSSIBLE_ACTIONS` are the actions you can take in the GridWold, as in slide 12. In this simple grid world, we will have four actions: Up, Down, Right, Left. <br>
-# `NOISE_PROB` defines how stochastic the environement is. It is the probability that the environment takes you where a random action would. 
+# `NOISE_PROB` defines how stochastic the environement is. It is the probability that the environment takes you where a random action would.
 
 # %% id="rdAWT5LJ52gB"
-SMALL_ENOUGH = 1e-3 # threshold to declare convergence
-GAMMA = 0.9         # discount factor
-ALL_POSSIBLE_ACTIONS = ('U', 'D', 'L', 'R') # Up, Down, Left, Right
-NOISE_PROB = 0.00   # Probability of the agent not reaching it's intended goal after an action
+SMALL_ENOUGH = 1e-3  # threshold to declare convergence
+GAMMA = 0.9  # discount factor
+ALL_POSSIBLE_ACTIONS = ("U", "D", "L", "R")  # Up, Down, Left, Right
+NOISE_PROB = (
+    0.00  # Probability of the agent not reaching it's intended goal after an action
+)
 
 # %% [markdown] id="KlkpxSv_54PC"
 # Now we will set up a the Gridworld. <br>
@@ -269,7 +277,7 @@ grid = four_rooms(noise_prob=NOISE_PROB)
 # Next, we will randomly initialize the value function
 
 # %% [markdown] id="_MzOKQq16Ko5"
-# Note that we set to Null the values of the terminal states. <br> 
+# Note that we set to Null the values of the terminal states. <br>
 # For the print_values() function to compile, we set them to 0.
 
 # %% [markdown] id="TsP5elXj6MR5"
@@ -335,7 +343,7 @@ for s in states:
 print_values(V, grid)
 
 # %% [markdown] id="KqPSYgdp6nHG"
-# Note that we set to Null the values of the terminal states. <br> 
+# Note that we set to Null the values of the terminal states. <br>
 # For the print_values() function to compile, we set them to 0.
 
 # %% [markdown] id="wFIRLA1x6p_1"
@@ -346,7 +354,7 @@ print_values(V, grid)
 # First, in the *policy evaluation* phase, the value function is update with the formula:
 #
 # $$
-# V^\pi(s) =  \sum_{s'}  p(s'|s,\pi(s))(r + \gamma*V^\pi(s') 
+# V^\pi(s) =  \sum_{s'}  p(s'|s,\pi(s))(r + \gamma*V^\pi(s')
 # $$
 # This part of the algorithm is already coded for you. <br>
 #
@@ -363,6 +371,7 @@ print_values(V, grid)
 
 # %% colab={"base_uri": "https://localhost:8080/"} id="c6T3nTa-6tmX" outputId="6b9f3458-6f55-445a-c926-6baff25e4d42"
 from collections import defaultdict
+
 values_per_policy = []
 Vs_per_policy = []
 actions_per_policy = []
@@ -379,11 +388,11 @@ for iteration in range(TOTAL_ITERATIONS):
     print_values(V, grid)
     print("policy (iteration %d)" % iteration)
     print_policy(policy, grid)
-    print('\n\n')
+    print("\n\n")
 
     # 1. policy evaluation step
     # this implementation does multiple policy-evaluation steps
-    # this is different than in the algorithm from the slides 
+    # this is different than in the algorithm from the slides
     # which does a single one.
 
     values_per_state = defaultdict(list)
@@ -400,14 +409,16 @@ for iteration in range(TOTAL_ITERATIONS):
             if s in policy:
                 a = policy[s]
                 grid.set_state(s)
-                r = grid.move(a) # reward
+                r = grid.move(a)  # reward
                 if grid.is_terminal(s):
                     breakpoint()
                     print("HELLO")
-                    import ipdb; ipdb.set_trace()
+                    import ipdb
+
+                    ipdb.set_trace()
                     V[s] = r
                 else:
-                    sprime = grid.current_state() # s' 
+                    sprime = grid.current_state()  # s'
                     V[s] = r + GAMMA * V[sprime]
             biggest_change = max(biggest_change, np.abs(old_v - V[s]))
             values_per_state[s].append(V[s])
@@ -424,36 +435,36 @@ for iteration in range(TOTAL_ITERATIONS):
     rewards_per_policy.append(rewards_per_state)
     sprimes_per_policy.append(sprimes_per_state)
 
-    #2. policy improvement step
+    # 2. policy improvement step
     is_policy_converged = True
     for s in states:
         if s in policy:
             old_a = policy[s]
             new_a = None
-            best_value = float('-inf')
+            best_value = float("-inf")
             # loop through all possible actions to find the best current action
             for a in ALL_POSSIBLE_ACTIONS:
                 grid.set_state(s)
                 r = grid.move(a)
-                sprime = grid.current_state() 
+                sprime = grid.current_state()
                 v = r + GAMMA * V[sprime]
                 if v > best_value:
                     best_value = v
                     new_a = a
-            if new_a is None: 
-                print('problem')
+            if new_a is None:
+                print("problem")
             policy[s] = new_a
             if new_a != old_a:
                 is_policy_converged = False
 
     if is_policy_converged:
         break
-    iteration+=1
+    iteration += 1
 
 
 # %%
 for s in states:
-    print('$$$$$$$$$$$$$$$$$$$$$$$', s)
+    print("$$$$$$$$$$$$$$$$$$$$$$$", s)
     for values in values_per_policy:
         print(values[s])
 
@@ -472,9 +483,10 @@ print_policy(policy, grid)
 
 # %% colab={"base_uri": "https://localhost:8080/"} id="0FSDwAhuvX4K" outputId="92c80fca-39eb-4101-e86d-cd0f699bbf53"
 def all_values():
-  for s2v in values_per_policy:
-    for s, v in s2v.items():
-      yield from v
+    for s2v in values_per_policy:
+        for s, v in s2v.items():
+            yield from v
+
 
 unique_values = list(np.unique(sorted(all_values())))
 unique_values
@@ -484,6 +496,7 @@ unique_values
 
 # %% colab={"base_uri": "https://localhost:8080/", "height": 255, "referenced_widgets": ["d4530befda7b4c67a4343bd233b724e7", "7d50859f71bb4e50942db5b24e96773c", "1abe78c4985541d2a9b6a7443e336106", "4eb78e54bdb34a8d95375a8fd8221a46", "220d205010b44658b860401b2365d258", "7749aea253744b41a2931de999206b25", "94274cacca90483784d8aaff70d25453", "092f2ba8db3d467490accc5582e9be60", "635941adc46e41999c1f476d51e4da1d", "76eea9e803f84dbf8b7fdf5d6c0c0431", "c0763887fe684dce852cdcf07d8c859c", "5e0fb915cd19481d93a7953c75f0e909", "57e49bc952cb4dbdb86813983fc14195", "ca779f956f2046379284317884afe0e1", "f54dec4ec0a04e928ff27595189f0698", "acf90f9333984f78ba1107f47765903a", "2696304241224a6c92f5c306f3f2dccb", "148776b127b049d59aad3237848add1c", "feb79ac27300471c8b5ba9cbaea0a59d", "51bf695579004c6086c830f41c8a2bcf", "73606c41d2d641a9a755bbd7fb1e4db6", "de7f7e9f54464fb28cf72b50e3e64ab2"]} id="jBY4kAoOuB2m" outputId="b5eaefa1-95b7-42d8-ad22-3bb51dd82dd7"
 import random
+
 random.seed(0)
 
 max_policy = 1
@@ -497,43 +510,49 @@ null = 0
 SHUFFLES_PER_PROMPT = 80
 heldout_states = [(5, 2), (4, 4)]
 
+
 def make_state_ids(state):
-  return list(1 + np.array(state))
+    return list(1 + np.array(state))
+
 
 def make_value_ids(values):
-  return list(max(grid.height, grid.width) + np.array([unique_values.index(v) for v in values]))
+    return list(
+        max(grid.height, grid.width)
+        + np.array([unique_values.index(v) for v in values])
+    )
+
 
 for i, s2v in enumerate(values_per_policy):
-  s2v_list = list(s2v.items())
-  for _ in range(len(s2v_list)):
-    *prompt, query = s2v_list
+    s2v_list = list(s2v.items())
+    for _ in range(len(s2v_list)):
+        *prompt, query = s2v_list
 
-    for seed in range(SHUFFLES_PER_PROMPT):
-      # prompt
-      new_input_ids = []
-      shuffled_prompt = random.choices(prompt, k=len(prompt))
-      for s, vs in shuffled_prompt:
-        new_input_ids += [*make_state_ids(s), *make_value_ids(vs)]
-  
-      # query
-      state, values = query
-      new_input_ids += make_state_ids(state)
-      query_value_ids = make_value_ids(values)
-  
-      # labels
-      new_labels = [null for _ in new_input_ids[:-1]] + query_value_ids
-      new_input_ids += query_value_ids[:-1]
-      input_ids.append(new_input_ids)
-      labels.append(new_labels)
-      attention_mask.append([1 for _ in new_labels])
-      queries.append([*state, *values[:1]])
-      prompts.append([[*s, *vs[:1]] for s, vs in shuffled_prompt])
+        for seed in range(SHUFFLES_PER_PROMPT):
+            # prompt
+            new_input_ids = []
+            shuffled_prompt = random.choices(prompt, k=len(prompt))
+            for s, vs in shuffled_prompt:
+                new_input_ids += [*make_state_ids(s), *make_value_ids(vs)]
 
-    # rotate s2v_list
-    s2v_list = [query, *prompt]
+            # query
+            state, values = query
+            new_input_ids += make_state_ids(state)
+            query_value_ids = make_value_ids(values)
 
-  if i == max_policy:
-    break
+            # labels
+            new_labels = [null for _ in new_input_ids[:-1]] + query_value_ids
+            new_input_ids += query_value_ids[:-1]
+            input_ids.append(new_input_ids)
+            labels.append(new_labels)
+            attention_mask.append([1 for _ in new_labels])
+            queries.append([*state, *values[:1]])
+            prompts.append([[*s, *vs[:1]] for s, vs in shuffled_prompt])
+
+        # rotate s2v_list
+        s2v_list = [query, *prompt]
+
+    if i == max_policy:
+        break
 
 max_len = max(len(l) for l in labels)
 input_ids = [[null] * (max_len - len(l)) + l for l in input_ids]
@@ -542,11 +561,22 @@ attention_mask = [[null] * (max_len - len(l)) + l for l in attention_mask]
 
 from datasets import Dataset
 from datasets import DatasetDict
-values_dataset = Dataset.from_dict(dict(attention_mask=attention_mask, input_ids=input_ids, labels=labels, query=queries, prompt=prompts))
+
+values_dataset = Dataset.from_dict(
+    dict(
+        attention_mask=attention_mask,
+        input_ids=input_ids,
+        labels=labels,
+        query=queries,
+        prompt=prompts,
+    )
+)
+
 
 def is_validation(x):
-  s1, s2, *values = x['query']
-  return (s1, s2) in heldout_states
+    s1, s2, *values = x["query"]
+    return (s1, s2) in heldout_states
+
 
 validation = values_dataset.filter(is_validation)
 train = values_dataset.filter(lambda x: not is_validation(x))
@@ -555,14 +585,15 @@ values_datasets
 
 # %% colab={"base_uri": "https://localhost:8080/"} id="CsHaA8U3DOms" outputId="a5edafe1-0390-4ec7-88af-a8761f12661c"
 from pprint import pprint
-for x in values_datasets['validation']:
-  for k, v in x.items():
-    print(k)
-    print(v)
-  break
+
+for x in values_datasets["validation"]:
+    for k, v in x.items():
+        print(k)
+        print(v)
+    break
 
 # %% id="y8lsJQy8liud"
-my_datasets = values_datasets #tokenized_datasets
+my_datasets = values_datasets  # tokenized_datasets
 
 per_device_batch_size = 16
 num_epochs = 1000
@@ -600,15 +631,16 @@ def data_loader(rng, dataset, batch_size, shuffle=False):
 
         yield batch
 
+
 train_loader = data_loader(rng, my_datasets["train"], total_batch_size, shuffle=True)
 for x in train_loader:
-  break
+    break
 x
 
 # %% [markdown] id="uGYl4nCPKyZi"
 # # Pre-Training a 🤗 Transformers model on TPU with **Flax/JAX**
 #
-# In this notebook, we will see how to pretrain one of the [🤗 Transformers](https://github.com/huggingface/transformers) models on TPU using [**Flax**](https://flax.readthedocs.io/en/latest/index.html). 
+# In this notebook, we will see how to pretrain one of the [🤗 Transformers](https://github.com/huggingface/transformers) models on TPU using [**Flax**](https://flax.readthedocs.io/en/latest/index.html).
 #
 # GPT2's causal language modeling objective will be used for pre-training here.
 #
@@ -645,7 +677,9 @@ x
 # %% id="aVr9TCzfacLN"
 from transformers import FlaxAutoModelForCausalLM
 
-model = FlaxAutoModelForCausalLM.from_config(config, seed=training_seed, dtype=jnp.dtype("bfloat16"))
+model = FlaxAutoModelForCausalLM.from_config(
+    config, seed=training_seed, dtype=jnp.dtype("bfloat16")
+)
 
 # %% [markdown] id="sMS_QkT76Lgk"
 # Next, we define the learning rate schedule. A simple and effective learning rate schedule is the linear decay with warmup (click [here](https://huggingface.co/transformers/main_classes/optimizer_schedules.html#transformers.get_linear_schedule_with_warmup) for more information). For simplicity, we set the number of warmup steps simply to 0 here. The schedule is then fully defined by the number of training steps and the learning rate.
@@ -655,17 +689,25 @@ model = FlaxAutoModelForCausalLM.from_config(config, seed=training_seed, dtype=j
 # To see how to define a learning rate schedule with warmup, please take a look at the [official Flax CLM pre-training script](https://github.com/huggingface/transformers/blob/master/examples/flax/language-modeling/run_clm_flax.py).
 
 # %% id="kfBkuV1ck4rq"
-linear_decay_lr_schedule_fn = optax.linear_schedule(init_value=learning_rate, end_value=0, transition_steps=num_train_steps)
+linear_decay_lr_schedule_fn = optax.linear_schedule(
+    init_value=learning_rate, end_value=0, transition_steps=num_train_steps
+)
 
 # %% [markdown] id="2p0yNxeU79F2"
-# We will be using the standard Adam optimizer with weight decay, called AdamW (Adam + weight decay). 
+# We will be using the standard Adam optimizer with weight decay, called AdamW (Adam + weight decay).
 #
 # AdamW can easily be imported from [optax](https://github.com/deepmind/optax) and is created from the just defined learning rate schedule as well as a couple of other hyper-parameters (*beta1*, *beta2*, *epsilon*) that are hard-coded in this notebook.
 #
 # For more information on AdamW (Adam + weight decay), one can take a look at [this](https://www.fast.ai/2018/07/02/adam-weight-decay/) blog post.
 
 # %% id="xRtpv_iamZd2"
-adamw = optax.adamw(learning_rate=linear_decay_lr_schedule_fn, b1=0.9, b2=0.98, eps=1e-8, weight_decay=0.01)
+adamw = optax.adamw(
+    learning_rate=linear_decay_lr_schedule_fn,
+    b1=0.9,
+    b2=0.98,
+    eps=1e-8,
+    weight_decay=0.01,
+)
 
 # %% [markdown] id="6g_fEbV-72Hc"
 # Next, we will create the *training state* that includes the optimizer, the loss function, and is responsible for updating the model's parameters during training.
@@ -682,22 +724,24 @@ adamw = optax.adamw(learning_rate=linear_decay_lr_schedule_fn, b1=0.9, b2=0.98, 
 #
 
 # %% id="JHYfR67AoKRc"
-state = train_state.TrainState.create(apply_fn=model.__call__, params=model.params, tx=adamw)
+state = train_state.TrainState.create(
+    apply_fn=model.__call__, params=model.params, tx=adamw
+)
 
 
 # %% [markdown] id="xiYCejDd81TX"
 # Next, let's implement a data loader for both training and evaluation.
 # The data loader can be defined as a [Python generator](https://wiki.python.org/moin/Generators) that returns a batch model input every time it is called.
 #
-# First, a random permutation of the whole dataset is defined. 
+# First, a random permutation of the whole dataset is defined.
 # Then, every time the training data collator is called the next batch of the randomized dataset is extracted, converted to a JAX array and sharded over all local TPU devices.
 
 # %% [markdown] id="L7uoTXDLUzb-"
-# At each training epoch, the dataset should be shuffled and superfluous samples that make the dataset not evenly divisible by the batch size are thrown away. Instead of passing the dataset, we prepare the indices of data samples to be used for both each training epoch. 
+# At each training epoch, the dataset should be shuffled and superfluous samples that make the dataset not evenly divisible by the batch size are thrown away. Instead of passing the dataset, we prepare the indices of data samples to be used for both each training epoch.
 # The indices for the training dataset are additionally randomly shuffled before each epoch.
 
 # %% [markdown] id="MU6idLb29xYu"
-# During fine-tuning, we want to update the model parameters and evaluate the performance after each epoch. 
+# During fine-tuning, we want to update the model parameters and evaluate the performance after each epoch.
 #
 # Let's write the functions `train_step` and `eval_step` accordingly. During training the weight parameters should be updated as follows:
 #
@@ -717,15 +761,21 @@ def metrics_mask(labels: jnp.ndarray):
 
 # %% id="GjKzb0zJd-aH"
 def prepare_for_model(batch):
-  return {k: v for k, v in batch.items() if k in ['attention_mask', 'input_ids']}
+    return {k: v for k, v in batch.items() if k in ["attention_mask", "input_ids"]}
+
 
 def train_step(state, batch, dropout_rng):
     dropout_rng, new_dropout_rng = jax.random.split(dropout_rng)
 
     def loss_fn(params):
         labels = batch.pop("labels")
-        logits = state.apply_fn(**prepare_for_model(batch), params=params, dropout_rng=dropout_rng, train=True)[0]
-        
+        logits = state.apply_fn(
+            **prepare_for_model(batch),
+            params=params,
+            dropout_rng=dropout_rng,
+            train=True,
+        )[0]
+
         logits = logits[..., :-1, :]
         onehots = onehot(labels[..., 1:], logits.shape[-1])
 
@@ -740,7 +790,8 @@ def train_step(state, batch, dropout_rng):
     new_state = state.apply_gradients(grads=grad)
 
     metrics = jax.lax.pmean(
-        {"loss": loss, "learning_rate": linear_decay_lr_schedule_fn(state.step), **aux}, axis_name="batch"
+        {"loss": loss, "learning_rate": linear_decay_lr_schedule_fn(state.step), **aux},
+        axis_name="batch",
     )
 
     return new_state, metrics, new_dropout_rng
@@ -772,8 +823,10 @@ def eval_step(params, batch):
     loss = optax.softmax_cross_entropy(logits, onehots).mean()
 
     # summarize metrics
-    metrics = {"loss": loss, "perplexity": jnp.exp(loss), "accuracy": accuracy}
-    metrics = dict(**jax.lax.pmean(metrics, axis_name="batch"), probs=probs)
+    metrics = {"loss": loss, "accuracy": accuracy}
+    metrics = dict(
+        **jax.lax.pmean(metrics, axis_name="batch"), probs=probs, labels=labels
+    )
     return metrics
 
 
@@ -792,16 +845,16 @@ state = flax.jax_utils.replicate(state)
 # %% [markdown] id="i2xg8oI-ZJ3P"
 # We can almost start training! In a final preparation step, we generate a seeded [**PRNGKey**](https://jax.readthedocs.io/en/latest/_autosummary/jax.random.PRNGKey.html#jax-random-prngkey) used as the random seed for dropout layers and dataset shuffling.
 #
-# Similar to how we had to copy/replicate the state on all 8 TPU devices, we also need to generate one `PRNGKey` per device, which is why we split the initial `rng` key into 8 random seeds. 
+# Similar to how we had to copy/replicate the state on all 8 TPU devices, we also need to generate one `PRNGKey` per device, which is why we split the initial `rng` key into 8 random seeds.
 
 # %% [markdown] id="bKuMWHicbede"
-# Now, we are all set to finally start training! 
-# Let's put all the pieces together and write the training loop. 
+# Now, we are all set to finally start training!
+# Let's put all the pieces together and write the training loop.
 #
-# We start each epoch by generating a new random seed that will be used for dataset shuffling, the dropout layers and the input token masking. 
+# We start each epoch by generating a new random seed that will be used for dataset shuffling, the dropout layers and the input token masking.
 #
 # Next, we generate the training dataset indices.
-# In the first nested loop - the training loop - we shard the input batch on all 8 TPU devices, and run the training step. 
+# In the first nested loop - the training loop - we shard the input batch on all 8 TPU devices, and run the training step.
 #
 # Analogs, in the second nested loop - the evaluation loop - the evaluation batches are sharded and the evaluation step is run.
 #
@@ -818,55 +871,66 @@ for epoch in tqdm(range(1, num_epochs + 1), desc=f"Epoch ...", position=0, leave
     rng, input_rng = jax.random.split(rng)
 
     # -- Train --
-    train_loader = data_loader(input_rng, my_datasets["train"], total_batch_size, shuffle=True)
-    with tqdm(total=len(my_datasets["train"]) // total_batch_size, desc="Training...", leave=False) as progress_bar_train:
+    train_loader = data_loader(
+        input_rng, my_datasets["train"], total_batch_size, shuffle=True
+    )
+    with tqdm(
+        total=len(my_datasets["train"]) // total_batch_size,
+        desc="Training...",
+        leave=False,
+    ) as progress_bar_train:
         for model_inputs in train_loader:
             # Model forward
-            state, train_metric, dropout_rngs = parallel_train_step(state, model_inputs, dropout_rngs)
+            state, train_metric, dropout_rngs = parallel_train_step(
+                state, model_inputs, dropout_rngs
+            )
 
             progress_bar_train.update(1)
 
-        loss = train_metric['loss'].mean()
-        losses['train'].append(loss)
-        accuracy = train_metric['accuracy'].mean()
-        accuracies['train'].append(accuracy)
+        loss = train_metric["loss"].mean()
+        losses["train"].append(loss)
+        accuracy = train_metric["accuracy"].mean()
+        accuracies["train"].append(accuracy)
         progress_bar_train.write(
-              f"Train... ({epoch}/{num_epochs} | Accuracy: {round(accuracy, 3)} | Loss: {round(loss, 3)}, Learning Rate: {round(train_metric['learning_rate'].mean(), 6)})"
+            f"Train... ({epoch}/{num_epochs} | Accuracy: {round(accuracy, 3)} | Loss: {round(loss, 3)}, Learning Rate: {round(train_metric['learning_rate'].mean(), 6)})"
         )
 
     # -- Eval --
     eval_loader = data_loader(input_rng, my_datasets["validation"], total_batch_size)
     eval_metrics = []
-   
-    with tqdm(total=len(my_datasets["validation"]) // total_batch_size, desc="Evaluation...", leave=False) as progress_bar_eval:
+
+    with tqdm(
+        total=len(my_datasets["validation"]) // total_batch_size,
+        desc="Evaluation...",
+        leave=False,
+    ) as progress_bar_eval:
         for model_inputs in eval_loader:
             # Model forward
             eval_metric = parallel_eval_step(state.params, model_inputs)
             eval_metrics.append(eval_metric)
 
             progress_bar_eval.update(1)
- 
-        probs = eval_metrics[0]['probs']
+
+        probs = [m["probs"] for m in eval_metrics]
+        labels = [m["labels"] for m in eval_metrics]
         eval_metrics = get_metrics(eval_metrics)
-        labels = model_inputs['labels']
-        inputs = model_inputs['input_ids']
         eval_metrics = jax.tree_map(jnp.mean, eval_metrics)
 
-        loss = eval_metric['loss'].mean()
-        losses['validation'].append(loss)
-        accuracy = eval_metric['accuracy'].mean()
-        accuracies['validation'].append(accuracy)
+        loss = eval_metric["loss"].mean()
+        losses["validation"].append(loss)
+        accuracy = eval_metric["accuracy"].mean()
+        accuracies["validation"].append(accuracy)
 
         progress_bar_eval.write(
-            f"Eval... ({epoch}/{num_epochs} | Accuracy: {round(accuracy, 3)} | Loss: {round(loss, 3)} | Perplexity: {eval_metrics['perplexity']})"
+            f"Eval... ({epoch}/{num_epochs} | Accuracy: {round(accuracy, 3)} | Loss: {round(loss, 3)})"
         )
 
     for label, loss in losses.items():
-      plt.plot(loss, label=label)
+        plt.plot(loss, label=label)
+    plt.yscale("log")
     plt.show()
     for label, accuracy in accuracies.items():
-      plt.plot(accuracy, label=label)
-    plt.yscale('log')
+        plt.plot(accuracy, label=label)
     plt.show()
 
 
@@ -880,5 +944,3 @@ del model
 del eval_step
 del train_step
 del state
-
-# %%
