@@ -6,3 +6,4 @@ __pycache__/
 distilgpt2-pretrained-is/
 Thesis_Proposal_Colab.ipynb
 '.cache/
+'.cache'/
