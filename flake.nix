@@ -158,6 +158,16 @@
           # poetry2nix version so that rpath is set correctly.
           pyprev.tensorflow-bin.overridePythonAttrs
           {inherit (pyprev.tensorflow-gpu) src version;};
+        torch =
+          # Override the nixpkgs bin version instead of
+          # poetry2nix version so that rpath is set correctly.
+          pyprev.pytorch-bin.overridePythonAttrs (old: {
+            inherit (old) pname version;
+            src = fetchurl {
+              url = "https://download.pytorch.org/whl/cu116/torch-1.13.1%2Bcu116-cp39-cp39-linux_x86_64.whl";
+              sha256 = "sha256-20V6gi1zYBO2/+UJBTABvJGL3Xj+aJZ7YF9TmEqa+sU=";
+            };
+          });
       };
       poetryArgs = {
         inherit python;
