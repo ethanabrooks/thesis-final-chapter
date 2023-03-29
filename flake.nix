@@ -25,14 +25,14 @@
       overrides = pyfinal: pyprev: let
         inherit (pyprev) buildPythonPackage fetchPypi;
       in rec {
-        ipywidgets = buildPythonPackage rec {
+        ipywidgets = pyprev.ipywidgets.overridePythonAttrs (old: {
           pname = "ipywidgets";
           version = "8.0.2";
           format = "setuptools";
 
           src = fetchPypi {
-            inherit pname version;
-            hash = "sha256-CMt1xuCpaDYUfL/cVVgK4E0T4F0m/7w3e04caLqiix8=";
+            inherit (old) pname version;
+            hash = "sha256-3n13nyBF1g3p9sJfZT/a4tuleJjmoShElLO6ILaJO7g=";
           };
 
           propagatedBuildInputs = with pyfinal; [
@@ -60,7 +60,7 @@
             "ipywidgets/widgets/tests/test_send_state.py"
             "ipywidgets/widgets/tests/test_set_state.py"
           ];
-        };
+        });
 
         # Use cuda-enabled jaxlib as required
         jaxlib = pyprev.jaxlibWithCuda.override {
