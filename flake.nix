@@ -17,7 +17,7 @@
           cudaSupport = true;
         };
       };
-      inherit (pkgs) bash buildEnv cudaPackages dockerTools linuxPackages mkShell poetry2nix python39 stdenv fetchurl;
+      inherit (pkgs) bash buildEnv cudaPackages dockerTools linuxPackages mkShell poetry2nix python39 stdenv fetchurl lib;
       inherit (poetry2nix) mkPoetryApplication mkPoetryEnv;
       inherit (cudaPackages) cudatoolkit;
       inherit (linuxPackages) nvidia_x11;
@@ -50,8 +50,8 @@
           meta = {
             description = "IPython HTML widgets for Jupyter";
             homepage = "http://ipython.org/";
-            license = pkgs.lib.licenses.bsd3;
-            maintainers = with pkgs.lib.maintainers; [fridh];
+            license = lib.licenses.bsd3;
+            maintainers = with lib.maintainers; [fridh];
           };
 
           doCheck = false;
@@ -118,7 +118,7 @@
                 tinycss2
                 traitlets
               ]
-              ++ pkgs.lib.lists.optionals (pythonOlder "3.10") [
+              ++ lib.lists.optionals (pythonOlder "3.10") [
                 importlib-metadata
               ];
 
@@ -146,9 +146,7 @@
             __darwinAllowLocalNetworking = true;
           };
         ray = pyprev.ray.overridePythonAttrs (old: {
-          propagatedBuildInputs =
-            (old.propagatedBuildInputs or [])
-            ++ [pyfinal.pandas];
+          propagatedBuildInputs = (old.propagatedBuildInputs or []) ++ [pyfinal.pandas];
         });
         run-logger = pyprev.run-logger.overridePythonAttrs (old: {
           buildInputs = old.buildInputs or [] ++ [pyprev.poetry];
@@ -169,7 +167,7 @@
             };
           });
         torchdata = pyprev.torchdata.overridePythonAttrs (old: {
-          buildInputs = pkgs.lib.lists.remove torch old.buildInputs;
+          buildInputs = (old.buildInputs or []) ++ [pyfinal.torch];
         });
       };
       poetryArgs = {
