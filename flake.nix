@@ -61,7 +61,12 @@
             };
           });
         torchdata = pyprev.torchdata.overridePythonAttrs (old: {
-          buildInputs = (old.buildInputs or []) ++ [pyfinal.torch];
+          format = "setuptools";
+          src = pkgs.fetchgit {
+            url = "https://github.com/pytorch/data.git";
+            rev = "9eda5be3c6c6679ddbfd789f6e15928aa85e4833";
+            sha256 = "sha256-HfwwRMYU44+pKEe5yPPS0I8s9zpNj6qJD2T2enx2m1Q=";
+          };
         });
       };
       poetryArgs = {

@@ -363,7 +363,7 @@ python-versions = ">=3.6"
 
 [[package]]
 name = "datasets"
-version = "2.10.1"
+version = "2.11.0"
 description = "HuggingFace community-driven open-source library of datasets"
 category = "main"
 optional = false
@@ -373,12 +373,12 @@ python-versions = ">=3.7.0"
 aiohttp = "*"
 dill = ">=0.3.0,<0.3.7"
 fsspec = {version = ">=2021.11.1", extras = ["http"]}
-huggingface-hub = ">=0.2.0,<1.0.0"
+huggingface-hub = ">=0.11.0,<1.0.0"
 multiprocess = "*"
 numpy = ">=1.17"
 packaging = "*"
 pandas = "*"
-pyarrow = ">=6.0.0"
+pyarrow = ">=8.0.0"
 pyyaml = ">=5.1"
 requests = ">=2.19.0"
 responses = "<0.19"
@@ -386,18 +386,18 @@ tqdm = ">=4.62.1"
 xxhash = "*"
 
 [package.extras]
+dev = ["zstandard", "absl-py", "pytest", "pytest-datadir", "pytest-xdist", "elasticsearch (<8.0.0)", "faiss-cpu (>=1.6.4)", "lz4", "py7zr", "rarfile (>=4.0)", "sqlalchemy (<2.0.0)", "torch", "soundfile (>=0.12.1)", "transformers", "Pillow (>=6.2.1)", "librosa", "black (>=23.1,<24.0)", "ruff (>=0.0.241)", "pyyaml (>=5.3.1)", "s3fs", "apache-beam (>=2.26.0,<2.44.0)", "s3fs (>=2021.11.1)", "tiktoken", "tensorflow (>=2.3,!=2.6.0,!=2.6.1)", "tensorflow-macos"]
 apache-beam = ["apache-beam (>=2.26.0,<2.44.0)"]
-audio = ["librosa"]
+audio = ["soundfile (>=0.12.1)", "librosa"]
 benchmarks = ["numpy (==1.18.5)", "tensorflow (==2.3.0)", "torch (==1.7.1)", "transformers (==3.0.2)", "protobuf (==3.20.3)"]
-dev = ["absl-py", "pytest", "pytest-datadir", "pytest-xdist", "elasticsearch (<8.0.0)", "faiss-cpu (>=1.6.4)", "lz4", "py7zr", "rarfile (>=4.0)", "torch", "torchaudio (<0.12.0)", "soundfile", "transformers", "zstandard", "Pillow (>=6.2.1)", "librosa", "black (>=23.1,<24.0)", "ruff (>=0.0.241)", "pyyaml (>=5.3.1)", "s3fs", "apache-beam (>=2.26.0,<2.44.0)", "s3fs (>=2021.11.1)", "tiktoken", "tensorflow (>=2.3,!=2.6.0,!=2.6.1)", "tensorflow-macos"]
 docs = ["s3fs"]
 jax = ["jax (>=0.2.8,!=0.3.2,<=0.3.25)", "jaxlib (>=0.1.65,<=0.3.25)"]
-metrics-tests = ["bert-score (>=0.3.6)", "jiwer", "langdetect", "mauve-text", "nltk", "rouge-score", "sacrebleu", "sacremoses", "scikit-learn", "scipy", "sentencepiece", "seqeval", "sqlalchemy (<2.0.0)", "spacy (>=3.0.0)", "tldextract", "toml (>=0.10.1)", "typer (<0.5.0)", "requests-file (>=1.5.1)", "tldextract (>=3.1.0)", "texttable (>=1.6.3)", "Werkzeug (>=1.0.1)", "six (>=1.15.0,<1.16.0)"]
+metrics-tests = ["bert-score (>=0.3.6)", "jiwer", "langdetect", "mauve-text", "nltk", "rouge-score", "sacrebleu", "sacremoses", "scikit-learn", "scipy", "sentencepiece", "seqeval", "spacy (>=3.0.0)", "tldextract", "toml (>=0.10.1)", "typer (<0.5.0)", "requests-file (>=1.5.1)", "tldextract (>=3.1.0)", "texttable (>=1.6.3)", "Werkzeug (>=1.0.1)", "six (>=1.15.0,<1.16.0)"]
 quality = ["black (>=23.1,<24.0)", "ruff (>=0.0.241)", "pyyaml (>=5.3.1)"]
 s3 = ["s3fs"]
 tensorflow = ["tensorflow (>=2.2.0,!=2.6.0,!=2.6.1)", "tensorflow-macos"]
 tensorflow_gpu = ["tensorflow-gpu (>=2.2.0,!=2.6.0,!=2.6.1)"]
-tests = ["absl-py", "pytest", "pytest-datadir", "pytest-xdist", "elasticsearch (<8.0.0)", "faiss-cpu (>=1.6.4)", "lz4", "py7zr", "rarfile (>=4.0)", "torch", "torchaudio (<0.12.0)", "soundfile", "transformers", "zstandard", "Pillow (>=6.2.1)", "librosa", "apache-beam (>=2.26.0,<2.44.0)", "s3fs (>=2021.11.1)", "tiktoken", "tensorflow (>=2.3,!=2.6.0,!=2.6.1)", "tensorflow-macos"]
+tests = ["absl-py", "pytest", "pytest-datadir", "pytest-xdist", "elasticsearch (<8.0.0)", "faiss-cpu (>=1.6.4)", "lz4", "py7zr", "rarfile (>=4.0)", "sqlalchemy (<2.0.0)", "torch", "soundfile (>=0.12.1)", "transformers", "zstandard", "Pillow (>=6.2.1)", "librosa", "apache-beam (>=2.26.0,<2.44.0)", "s3fs (>=2021.11.1)", "tiktoken", "tensorflow (>=2.3,!=2.6.0,!=2.6.1)", "tensorflow-macos"]
 torch = ["torch"]
 vision = ["Pillow (>=6.2.1)"]
 
@@ -1746,6 +1746,22 @@ docs = ["furo (>=2022.12.7)", "proselint (>=0.13)", "sphinx-autodoc-typehints (>
 test = ["appdirs (==1.4.4)", "covdefaults (>=2.3)", "pytest-cov (>=4)", "pytest-mock (>=3.10)", "pytest (>=7.2.2)"]
 
 [[package]]
+name = "portalocker"
+version = "2.7.0"
+description = "Wraps the portalocker recipe for easy usage"
+category = "main"
+optional = false
+python-versions = ">=3.5"
+
+[package.dependencies]
+pywin32 = {version = ">=226", markers = "platform_system == \"Windows\""}
+
+[package.extras]
+docs = ["sphinx (>=1.7.1)"]
+redis = ["redis"]
+tests = ["pytest (>=5.4.1)", "pytest-cov (>=2.8.1)", "pytest-timeout (>=2.1.0)", "sphinx (>=6.0.0)", "pytest-mypy (>=0.8.0)", "redis"]
+
+[[package]]
 name = "pre-commit"
 version = "2.21.0"
 description = "A framework for managing and maintaining multi-language pre-commit hooks."
@@ -2325,6 +2341,20 @@ typing-extensions = "*"
 opt-einsum = ["opt-einsum (>=3.3)"]
 
 [[package]]
+name = "torchdata"
+version = "0.5.0"
+description = "Composable data loading modules for PyTorch"
+category = "main"
+optional = false
+python-versions = ">=3.7"
+
+[package.dependencies]
+portalocker = ">=2.0.0"
+requests = "*"
+torch = "1.13.0"
+urllib3 = ">=1.25"
+
+[[package]]
 name = "tornado"
 version = "6.2"
 description = "Tornado is a Python web framework and asynchronous networking library, originally developed at FriendFeed."
@@ -2590,7 +2620,7 @@ testing = ["pytest (>=6)", "pytest-checkdocs (>=2.4)", "flake8 (<5)", "pytest-co
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.8,<3.11"
-content-hash = "277bda4c555ae483be8503d6d5501bf5ae1c3464a5cb31a7ad5ce27282c3d2b2"
+content-hash = "66ec3798dd69040671c88b90fca34f9b9edb2439ec99a7cd71d09686e2c88f8a"
 
 [metadata.files]
 absl-py = [
@@ -3016,8 +3046,8 @@ cycler = [
     {file = "cycler-0.11.0.tar.gz", hash = "sha256:9c87405839a19696e837b3b818fed3f5f69f16f1eec1a1ad77e043dcea9c772f"},
 ]
 datasets = [
-    {file = "datasets-2.10.1-py3-none-any.whl", hash = "sha256:bfde7253b31abfd075f9ad55961b13c135a5a9295cea04ae86c47b9c0e0466fd"},
-    {file = "datasets-2.10.1.tar.gz", hash = "sha256:e2764c90aa3af96450a9747a934b8893b121f79f58d89e123cb1a7046bb8e81e"},
+    {file = "datasets-2.11.0-py3-none-any.whl", hash = "sha256:d946cdb8c4885d3016a2ab3129c9403dd3358fe9107e8ab5e549ceab672774af"},
+    {file = "datasets-2.11.0.tar.gz", hash = "sha256:1ca53b9cd6ece7a3fdb81176dadd5b9e646420e52e68e85307b27db3a36ca18c"},
 ]
 debugpy = [
     {file = "debugpy-1.6.6-cp310-cp310-macosx_11_0_x86_64.whl", hash = "sha256:0ea1011e94416e90fb3598cc3ef5e08b0a4dd6ce6b9b33ccd436c1dffc8cd664"},
@@ -4015,6 +4045,10 @@ platformdirs = [
     {file = "platformdirs-3.2.0-py3-none-any.whl", hash = "sha256:ebe11c0d7a805086e99506aa331612429a72ca7cd52a1f0d277dc4adc20cb10e"},
     {file = "platformdirs-3.2.0.tar.gz", hash = "sha256:d5b638ca397f25f979350ff789db335903d7ea010ab28903f57b27e1b16c2b08"},
 ]
+portalocker = [
+    {file = "portalocker-2.7.0-py2.py3-none-any.whl", hash = "sha256:a07c5b4f3985c3cf4798369631fb7011adb498e2a46d8440efc75a8f29a0f983"},
+    {file = "portalocker-2.7.0.tar.gz", hash = "sha256:032e81d534a88ec1736d03f780ba073f047a06c478b06e2937486f334e955c51"},
+]
 pre-commit = [
     {file = "pre_commit-2.21.0-py2.py3-none-any.whl", hash = "sha256:e2f91727039fc39a92f58a588a25b87f936de6567eed4f0e673e0507edc75bad"},
     {file = "pre_commit-2.21.0.tar.gz", hash = "sha256:31ef31af7e474a8d8995027fefdfcf509b5c913ff31f2015b4ec4beb26a6f658"},
@@ -4569,6 +4603,23 @@ torch = [
     {file = "torch-1.13.0-cp39-cp39-win_amd64.whl", hash = "sha256:4a378f5091307381abfb30eb821174e12986f39b1cf7c4522bf99155256819eb"},
     {file = "torch-1.13.0-cp39-none-macosx_10_9_x86_64.whl", hash = "sha256:922a4910613b310fbeb87707f00cb76fec328eb60cc1349ed2173e7c9b6edcd8"},
     {file = "torch-1.13.0-cp39-none-macosx_11_0_arm64.whl", hash = "sha256:47fe6228386bff6d74319a2ffe9d4ed943e6e85473d78e80502518c607d644d2"},
+]
+torchdata = [
+    {file = "torchdata-0.5.0-cp310-cp310-macosx_10_13_x86_64.whl", hash = "sha256:3adcb4ec50980ab9acc6d8c805a0be55032622047e744b315c85c68bc457ae6b"},
+    {file = "torchdata-0.5.0-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:1621957441ec38b346d83a8bff6d0211aa0b5c56961ca976bd0856cade903430"},
+    {file = "torchdata-0.5.0-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:760880e562f8d701c039c21605d34eca730455fbdb14f961be772d88c00171d4"},
+    {file = "torchdata-0.5.0-cp310-cp310-win_amd64.whl", hash = "sha256:06b39e29bae76745ecff49422fd6901f188621e7b282f85ec3b8757c25f6c08c"},
+    {file = "torchdata-0.5.0-cp37-cp37m-macosx_10_13_x86_64.whl", hash = "sha256:abdcbd04832a5ad24c0693a2b6f838a76e4db865333c79b53ff327b82b51a715"},
+    {file = "torchdata-0.5.0-cp37-cp37m-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:7a9d5ac8203c52c869370740f6b3d75d4127ebabf431b8a57eeec6167b3bb7ab"},
+    {file = "torchdata-0.5.0-cp37-cp37m-win_amd64.whl", hash = "sha256:73583d17fb4c75639db22025ec45d518fa781484e13b38308d417759b249fa05"},
+    {file = "torchdata-0.5.0-cp38-cp38-macosx_10_13_x86_64.whl", hash = "sha256:e34da29fa6afa47d5ab1595b3745a5540673e99f63cc27b92a9e8ba57ec28d13"},
+    {file = "torchdata-0.5.0-cp38-cp38-macosx_11_0_arm64.whl", hash = "sha256:e710c9dac72d23ffa09eb17e7d726953718829cf02314c57b6a34aec633c11f0"},
+    {file = "torchdata-0.5.0-cp38-cp38-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:f7d295a6a8898706dbc53d7a1683a65dfcb6766d54e9e0afbd722919b8176101"},
+    {file = "torchdata-0.5.0-cp38-cp38-win_amd64.whl", hash = "sha256:861a85474a6358be28dc9333ed2b267ed85c42f5b749eab55f2b5f5a9bf25931"},
+    {file = "torchdata-0.5.0-cp39-cp39-macosx_10_13_x86_64.whl", hash = "sha256:43b35413cb687de9d55e52bb4ce5103b3ca11280aafde63316c630d78026e004"},
+    {file = "torchdata-0.5.0-cp39-cp39-macosx_11_0_arm64.whl", hash = "sha256:74772b580fbf3f0f1bfd86930f7f0ab71c03e88489c7729d6132017a9fd3d872"},
+    {file = "torchdata-0.5.0-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:e674a353e8d8656f142130f2abebc79ff31bf0ca4fefeac54365743c8d6ab46d"},
+    {file = "torchdata-0.5.0-cp39-cp39-win_amd64.whl", hash = "sha256:588b75557923bc73dd4c87646d13a6bbcadf16994564575d99bb577a19b84d57"},
 ]
 tornado = [
     {file = "tornado-6.2-cp37-abi3-macosx_10_9_universal2.whl", hash = "sha256:20f638fd8cc85f3cbae3c732326e96addff0a15e22d80f049e00121651e82e72"},
