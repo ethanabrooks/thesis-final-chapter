@@ -26,40 +26,7 @@
         inherit (pyprev) buildPythonPackage fetchPypi;
       in rec {
         ipywidgets = pyprev.ipywidgets.overridePythonAttrs (old: {
-          pname = "ipywidgets";
-          version = "8.0.2";
-          format = "setuptools";
-
-          src = fetchPypi {
-            inherit (old) pname version;
-            hash = "sha256-3n13nyBF1g3p9sJfZT/a4tuleJjmoShElLO6ILaJO7g=";
-          };
-
-          propagatedBuildInputs = with pyfinal; [
-            ipython
-            ipykernel
-            jupyterlab-widgets
-            traitlets
-            nbformat
-            pytz
-            widgetsnbextension
-          ];
-
-          checkInputs = with pyfinal; [pytestCheckHook];
-
-          meta = {
-            description = "IPython HTML widgets for Jupyter";
-            homepage = "http://ipython.org/";
-            license = lib.licenses.bsd3;
-            maintainers = with lib.maintainers; [fridh];
-          };
-
-          doCheck = false;
-
-          disabledTests = [
-            "ipywidgets/widgets/tests/test_send_state.py"
-            "ipywidgets/widgets/tests/test_set_state.py"
-          ];
+          preferWheel = true;
         });
 
         # Use cuda-enabled jaxlib as required
@@ -74,15 +41,15 @@
             hash = "sha256-WGWmCfRDewRkvBIc1We2GQdOVAoFFaO4LyIvdk61HgE=";
           };
         in
-          buildPythonPackage rec {
+          pyprev.nbconvert.overridePythonAttrs (old: {
             pname = "nbconvert";
             version = "7.2.3";
 
             format = "pyproject";
 
             src = fetchPypi {
-              inherit pname version;
-              hash = "sha256-eufMxoSVtWXasVNFnufmUDmXCRPrEVBw2m4sZzzw6fg=";
+              inherit (old) pname version;
+              hash = "sha256-ju1nvYMU8+yHxDUcL2dK86BOWJCrkF1r2SfAWuwc8n0=";
             };
 
             # Add $out/share/jupyter to the list of paths that are used to search for
@@ -144,7 +111,7 @@
 
             # Some of the tests use localhost networking.
             __darwinAllowLocalNetworking = true;
-          };
+          });
         ray = pyprev.ray.overridePythonAttrs (old: {
           propagatedBuildInputs = (old.propagatedBuildInputs or []) ++ [pyfinal.pandas];
         });
