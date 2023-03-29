@@ -168,6 +168,9 @@
               sha256 = "sha256-20V6gi1zYBO2/+UJBTABvJGL3Xj+aJZ7YF9TmEqa+sU=";
             };
           });
+        torchdata = pyprev.torchdata.overridePythonAttrs (old: {
+          buildInputs = pkgs.lib.lists.remove torch old.buildInputs;
+        });
       };
       poetryArgs = {
         inherit python;

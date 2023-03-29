@@ -18,7 +18,7 @@ flax = "0.5.2"
 GitPython = "^3.1.27"
 ray = {version = "^1.13.0", extras = ["tune"]}
 run-logger = {git = "https://github.com/run-tracker/run-logger.git", rev = "main"}
-torch = "1.11.0"
+torch = "1.13.0"
 
 # general utility
 dollar-lambda = "^1.1.4"  # command line
