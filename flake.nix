@@ -42,13 +42,13 @@
             hash = "sha256-ju1nvYMU8+yHxDUcL2dK86BOWJCrkF1r2SfAWuwc8n0=";
           };
 
-          nativeBuildInputs = old.nativeBuildInputs ++ [pyprev.hatchling];
+          nativeBuildInputs = (old.nativeBuildInputs or []) ++ [pyprev.hatchling];
         });
         ray = pyprev.ray.overridePythonAttrs (old: {
           propagatedBuildInputs = (old.propagatedBuildInputs or []) ++ [pyfinal.pandas];
         });
         run-logger = pyprev.run-logger.overridePythonAttrs (old: {
-          buildInputs = old.buildInputs or [] ++ [pyprev.poetry];
+          buildInputs = (old.buildInputs or []) ++ [pyprev.poetry];
         });
         tensorflow-gpu =
           # Override the nixpkgs bin version instead of
