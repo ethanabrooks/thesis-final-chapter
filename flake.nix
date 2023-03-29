@@ -68,6 +68,9 @@
             sha256 = "sha256-HfwwRMYU44+pKEe5yPPS0I8s9zpNj6qJD2T2enx2m1Q=";
           };
         });
+        torchtext = pyprev.torchtext.overridePythonAttrs (old: {
+          preFixup = "addAutoPatchelfSearchPath ${pyfinal.torch}";
+        });
       };
       poetryArgs = {
         inherit python;

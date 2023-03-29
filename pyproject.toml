@@ -18,7 +18,7 @@ flax = "0.5.2"
 GitPython = "^3.1.27"
 ray = {version = "^1.13.0", extras = ["tune"]}
 run-logger = {git = "https://github.com/run-tracker/run-logger.git", rev = "main"}
-torch = "1.13.0"
+torch = "1.13.1"
 
 # general utility
 dollar-lambda = "^1.1.4"  # command line
@@ -36,6 +36,7 @@ ipywidgets = "^8.0.4"
 jupyterlab-vim = "^0.15.1"
 jupyterlab = "^3.6.2"
 torchdata = "0.5.1"
+torchtext = "0.14.1"
 
 [tool.poetry.dev-dependencies]
 black = "^22.6.0"
